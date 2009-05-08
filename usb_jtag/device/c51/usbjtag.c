@@ -286,7 +286,7 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
 
    if(!(EP2468STAT & bmEP2EMPTY) && (Pending < OUTBUFFER_LEN-0x3F))
    {
-      BYTE i, n = EP2BCL;
+      WORD i,n = EP2BCL|EP2BCH<<8;
 
       APTR1H = MSB( EP2FIFOBUF );
       APTR1L = LSB( EP2FIFOBUF );
@@ -295,7 +295,7 @@ void usb_jtag_activity(void) // Called repeatedly while the device is idle
       {
          if(ClockBytes > 0)
          {
-            BYTE m;
+            WORD m;
 
             m = n-i;
             if(ClockBytes < m) m = ClockBytes;
