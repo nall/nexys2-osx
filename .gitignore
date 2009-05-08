@@ -1,3 +1,3 @@
 build
 tmtags
-fxload-osx.xcodeproj/*.tm_build_errors
+*.tm_build_errors
