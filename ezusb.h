@@ -25,6 +25,51 @@
 #include <IOKit/usb/IOUSBLib.h>
 
 /*
+ * These are the requests (bRequest) that the bootstrap loader is expected
+ * to recognize.  The codes are reserved by Cypress, and these values match
+ * what EZ-USB hardware, or "Vend_Ax" firmware (2nd stage loader) uses.
+ * Cypress' "a3load" is nice because it supports both FX and FX2, although
+ * it doesn't have the EEPROM support (subset of "Vend_Ax").
+ */
+#define RW_INTERNAL 0xA0        /* hardware implements this one */
+#define RW_EEPROM   0xA2
+#define RW_MEMORY   0xA3
+#define GET_EEPROM_SIZE 0xA5
+
+/*
+ * For writing to RAM using a first (hardware) or second (software)
+ * stage loader and 0xA0 or 0xA3 vendor requests
+ */
+typedef enum
+{
+    _undef = 0,
+    internal_only,      /* hardware first-stage loader */
+    skip_internal,      /* first phase, second-stage loader */
+    skip_external       /* second phase, second-stage loader */
+} ram_mode;
+
+struct ram_poke_context
+{
+    IOUSBDeviceInterface** dev;
+    ram_mode mode;
+    uint32_t total;
+    uint32_t count;
+};
+
+/*
+ * For writing to EEPROM using a 2nd stage loader
+ */
+struct eeprom_poke_context
+{
+    IOUSBDeviceInterface** dev;
+    uint16_t ee_addr;    /* next free address */
+    BOOL last;
+};
+
+
+# define RETRY_LIMIT 5
+
+/*
  * This function loads the firmware from the given file into RAM.
  * The file is assumed to be in Intel HEX format.  If fx2 is set, uses
  * appropriate reset commands.  Stage == 0 means this is a single stage
@@ -56,10 +101,10 @@ extern int ezusb_load_eeprom (
     IOUSBDeviceInterface** dev, /* usb device handle */
     NSString* hexfilePath,      /* path to hexfile */
     NSString* partType,         /* fx, fx2, an21 */
-    const uint8_t config        /* config byte for fx/fx2; else zero */
+    uint8_t config        /* config byte for fx/fx2; else zero */
     );
 
 
 /* boolean flag, says whether to write extra messages to stderr */
-extern BOOL verbose;
+extern uint8_t verbose;
 #endif
