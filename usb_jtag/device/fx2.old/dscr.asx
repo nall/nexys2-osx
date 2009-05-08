@@ -1,0 +1,185 @@
+;;-----------------------------------------------------------------------------
+;;   File:      dscr.a51
+;;   Contents:   Descriptor data tables for usbjtag.
+;;-----------------------------------------------------------------------------
+;; This file has been derived from dscr.a51 delivered with CY3681
+;; development kit from Cypress Semiconductor. That is
+;;   Copyright (c) 1997 AnchorChips, Inc. All rights reserved
+;;-----------------------------------------------------------------------------   
+DSCR_DEVICE   =   1   ;; Descriptor type: Device
+DSCR_CONFIG   =   2   ;; Descriptor type: Configuration
+DSCR_STRING   =   3   ;; Descriptor type: String
+DSCR_INTRFC   =   4   ;; Descriptor type: Interface
+DSCR_ENDPNT   =   5   ;; Descriptor type: Endpoint
+DSCR_DEVQUAL  =   6   ;; Descriptor type: Device Qualifier
+
+DSCR_DEVICE_LEN   =   18
+DSCR_CONFIG_LEN   =    9
+DSCR_INTRFC_LEN   =    9
+DSCR_ENDPNT_LEN   =    7
+DSCR_DEVQUAL_LEN  =   10
+
+ET_CONTROL   =   0   ;; Endpoint type: Control
+ET_ISO       =   1   ;; Endpoint type: Isochronous
+ET_BULK      =   2   ;; Endpoint type: Bulk
+ET_INT       =   3   ;; Endpoint type: Interrupt
+
+;;-----------------------------------------------------------------------------
+;; Global Variables
+;;-----------------------------------------------------------------------------
+
+      .module dscr
+      .area USBDESCSEG    (XDATA)
+
+      .globl _DeviceDscr
+      .even
+_DeviceDscr:
+      .db   DSCR_DEVICE_LEN   ;; Descriptor length
+      .db   DSCR_DEVICE       ;; Decriptor type
+      .db   0x10,0x01         ;; 00110H            ;; Specification Version (BCD)
+      .db   0x00              ;; Device class
+      .db   0x00              ;; Device sub-class
+      .db   0x00              ;; Device sub-sub-class
+      .db   0x40              ;; Maximum packet size
+      .db   0xC0,0x16         ;; 016C0H            ;; Vendor ID
+      .db   0xAD,0x06         ;; 006ADH            ;; Product ID
+      .db   0x04,0x00         ;; 0004H             ;; Product version ID (4.00)
+      .db   1                 ;; Manufacturer string index
+      .db   2                 ;; Product string index
+      .db   3                 ;; Serial number string index
+      .db   1                 ;; Number of configurations
+
+      .globl _DeviceQualDscr
+      .even
+_DeviceQualDscr:
+      .db   DSCR_DEVQUAL_LEN  ;; Descriptor length
+      .db   DSCR_DEVQUAL      ;; Decriptor type
+      .db   0x10,0x01         ;; Specification Version (BCD)
+      .db   0xFF              ;; Device class
+      .db   0xFF              ;; Device sub-class
+      .db   0xFF              ;; Device sub-sub-class
+      .db   0x40              ;; Maximum packet size
+      .db   1                 ;; Number of configurations
+      .db   0                 ;; Reserved
+
+      .globl _HighSpeedConfigDscr
+      .even
+_HighSpeedConfigDscr:   
+      .db   DSCR_CONFIG_LEN   ;; Descriptor length
+      .db   DSCR_CONFIG       ;; Descriptor type
+      .db   (HighSpeedConfigDscrEnd-_HighSpeedConfigDscr) % 256 ;; Total Length (LSB)
+      .db   (HighSpeedConfigDscrEnd-_HighSpeedConfigDscr) / 256 ;; Total Length (MSB)
+      .db   1                 ;; Number of interfaces
+      .db   1                 ;; Configuration number
+      .db   0                 ;; Configuration string
+      .db   0xA0              ;; Attributes (b7 - buspwr, b6 - selfpwr, b5 - rwu)
+      .db   75                ;; Power requirement (div 2 ma)
+
+;; Interface Descriptor
+      .db   DSCR_INTRFC_LEN   ;; Descriptor length
+      .db   DSCR_INTRFC       ;; Descriptor type
+      .db   0                 ;; Zero-based index of this interface
+      .db   0                 ;; Alternate setting
+      .db   2                 ;; Number of end points 
+      .db   0xFF              ;; Interface class
+      .db   0xFF              ;; Interface sub class
+      .db   0xFF              ;; Interface sub sub class
+      .db   2                 ;; Interface descriptor string index
+      
+;; Endpoint Descriptor
+      .db   DSCR_ENDPNT_LEN   ;; Descriptor length
+      .db   DSCR_ENDPNT       ;; Descriptor type
+      .db   0x81              ;; Endpoint number, and direction
+      .db   ET_BULK           ;; Endpoint type
+      .db   0x40              ;; Maximum packet size (LSB)
+      .db   0                 ;; Max packect size (MSB)
+      .db   0                 ;; Polling interval
+
+;; Endpoint Descriptor
+      .db   DSCR_ENDPNT_LEN   ;; Descriptor length
+      .db   DSCR_ENDPNT       ;; Descriptor type
+      .db   0x02              ;; Endpoint number, and direction
+      .db   ET_BULK           ;; Endpoint type
+      .db   0x40              ;; Maximum packet size (LSB)
+      .db   0                 ;; Max packect size (MSB)
+      .db   0                 ;; Polling interval
+HighSpeedConfigDscrEnd:   
+
+       .globl _FullSpeedConfigDscr
+      .even
+_FullSpeedConfigDscr:   
+      .db   DSCR_CONFIG_LEN   ;; Descriptor length
+      .db   DSCR_CONFIG       ;; Descriptor type
+      .db   (FullSpeedConfigDscrEnd-_FullSpeedConfigDscr) % 256 ;; Total Length (LSB)
+      .db   (FullSpeedConfigDscrEnd-_FullSpeedConfigDscr) / 256;; Total Length (MSB)
+      .db   1                 ;; Number of interfaces
+      .db   1                 ;; Configuration number
+      .db   0                 ;; Configuration string
+      .db   0xA0              ;; Attributes (b7 - buspwr, b6 - selfpwr, b5 - rwu)
+      .db   75                ;; Power requirement (div 2 ma)
+
+;; Interface Descriptor
+      .db   DSCR_INTRFC_LEN   ;; Descriptor length
+      .db   DSCR_INTRFC       ;; Descriptor type
+      .db   0                 ;; Zero-based index of this interface
+      .db   0                 ;; Alternate setting
+      .db   2                 ;; Number of end points 
+      .db   0xFF              ;; Interface class
+      .db   0xFF              ;; Interface sub class
+      .db   0xFF              ;; Interface sub sub class
+      .db   2                 ;; Interface descriptor string index
+      
+;; Endpoint Descriptor
+      .db   DSCR_ENDPNT_LEN   ;; Descriptor length
+      .db   DSCR_ENDPNT       ;; Descriptor type
+      .db   0x81              ;; Endpoint number, and direction
+      .db   ET_BULK           ;; Endpoint type
+      .db   0x40              ;; Maximum packet size (LSB)
+      .db   0                 ;; Max packect size (MSB)
+      .db   0                 ;; Polling interval
+
+;; Endpoint Descriptor
+      .db   DSCR_ENDPNT_LEN   ;; Descriptor length
+      .db   DSCR_ENDPNT       ;; Descriptor type
+      .db   0x02              ;; Endpoint number, and direction
+      .db   ET_BULK           ;; Endpoint type
+      .db   0x40              ;; Maximum packet size (LSB)
+      .db   0                 ;; Max packect size (MSB)
+      .db   0                 ;; Polling interval
+FullSpeedConfigDscrEnd:   
+
+      .globl _StringDscr
+      .even
+_StringDscr:
+
+StringDscr0:   
+      .db   StringDscr0End-StringDscr0      ;; String descriptor length
+      .db   DSCR_STRING 
+      .db   0x09,0x04
+StringDscr0End:
+
+StringDscr1:   
+      .db   StringDscr1End-StringDscr1      ;; String descriptor length
+      .db   DSCR_STRING
+      .ascii "i\0x\0o\0.\0d\0e\0"           ;; ixo.de
+StringDscr1End:
+
+StringDscr2:   
+      .db   StringDscr2End-StringDscr2      ;; Descriptor length
+      .db   DSCR_STRING
+      .ascii "U\0S\0B\0-\0J\0T\0A\0G\0-\0I\0F\0" ;; USB-JTAG-IF
+StringDscr2End:
+
+;; Serial number
+
+StringDscr3:   
+      .db   StringDscr3End-StringDscr3      ;; Descriptor length
+      .db   DSCR_STRING
+      .ascii "0\00\00\00\00\00\00\00\0"     ;; "00000000"
+
+StringDscr3End:
+
+      .globl _UserDscr
+_UserDscr:      
+      .dw 0
+      
