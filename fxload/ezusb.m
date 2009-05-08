@@ -206,13 +206,13 @@ static BOOL ezusb_cpucs (IOUSBDeviceInterface** dev, const uint16_t addr,
 
     if(verbose)
     {
-        NSLog(@"%s", data ? @"stop CPU" : @"reset CPU");
+        NSLog(@"%@", data ? @"stop CPU" : @"reset CPU");
     }
     
     const int status = ctrl_msg(dev,
         USBmakebmRequestType(kUSBOut, kUSBVendor, kUSBDevice),
         RW_INTERNAL, addr, 0, &data, 1);
-    if(status != 0)
+    if(status != 1)
     {
         NSLog(@"Can't modify CPUCS");
         return FALSE;
@@ -249,7 +249,7 @@ static inline int ezusb_get_eeprom_type (IOUSBDeviceInterface** dev, uint8_t* da
  * been loaded.  Then file is re-parsed and on-chip memory is written.
  */
 int ezusb_load_ram (IOUSBDeviceInterface** dev, NSString* hexfilePath,     
-    const BOOL fx2, const BOOL stage)
+    const part_type partType, const BOOL stage)
 {
     FILE* image;
     uint16_t cpucs_addr;
@@ -269,12 +269,12 @@ int ezusb_load_ram (IOUSBDeviceInterface** dev, NSString* hexfilePath,
     }
 
     /* EZ-USB original/FX and FX2 devices differ, apart from the 8051 core */
-    if (fx2 == 2)
+    if (partType == ptFX2LP)
     {
         cpucs_addr = 0xe600;
         is_external = fx2lp_is_external;
     }
-    else if (fx2)
+    else if (partType == ptFX2)
     {
         cpucs_addr = 0xe600;
         is_external = fx2_is_external;
@@ -369,7 +369,7 @@ int ezusb_load_ram (IOUSBDeviceInterface** dev, NSString* hexfilePath,
  * to handle the EEPROM write requests.
  */
 int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,     
-    NSString* partType, uint8_t config)
+    const part_type partType, uint8_t config)
 {
     FILE* image;
     uint16_t cpucs_addr;
@@ -401,7 +401,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
     }
 
     /* EZ-USB family devices differ, apart from the 8051 core */
-    if([partType isEqualToString:@"fx2"])
+    if(partType == ptFX2)
     {
         first_byte = 0xC2;
         cpucs_addr = 0xe600;
@@ -418,7 +418,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
             (config & 0x01) ? 400 : 100
             );
     }
-    else if([partType isEqualToString:@"fx2lp"])
+    else if(partType == ptFX2LP)
     {
         first_byte = 0xC2;
         cpucs_addr = 0xe600;
@@ -432,7 +432,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
             (config & 0x01) ? 400 : 100
             );
     }
-    else if([partType isEqualToString:@"fx"])
+    else if(partType == ptFX)
     {
         first_byte = 0xB6;
         cpucs_addr = 0x7f92;
@@ -447,7 +447,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
             (config & 0x01) ? 400 : 100
             );
     }
-    else if([partType isEqualToString:@"an21"])
+    else if(partType == ptAN21)
     {
         first_byte = 0xB2;
         cpucs_addr = 0x7f92;
@@ -494,7 +494,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
     }
 
     /* write the config byte for FX, FX2 */
-    else if([partType isEqualToString:@"an21"] == FALSE)
+    else if(partType == ptAN21)
     {
         value = config;
         status = ezusb_write (dev, @"write config byte",
@@ -506,7 +506,7 @@ int ezusb_load_eeprom (IOUSBDeviceInterface** dev, NSString* hexfilePath,
     }
 
     /* EZ-USB FX has a reserved byte */
-    else if([partType isEqualToString:@"fx"])
+    else if(partType == ptFX)
     {
         value = 0;
         status = ezusb_write (dev, @"write reserved byte",

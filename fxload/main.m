@@ -21,7 +21,7 @@
 #include <IOKit/IOCFPlugIn.h>
 #import <Foundation/Foundation.h>
 
-uint8_t verbose = 1;
+uint8_t verbose = 0;
 
 static NSString* VERSION_STRING = @"fxload-osx v1.0";
 
@@ -286,13 +286,34 @@ int main (int argc, char * argv[]) {
         {
             goto cleanup;
         }
-
-        NSString* partType = [args valueForKey:kArgPartType];
-        const BOOL fx2 = [partType hasPrefix:@"fx2"];
+        
+        NSString* partTypeStr = [args valueForKey:kArgPartType];
+        part_type partType = _undef;
+        if([partTypeStr isEqualToString:@"an21"])
+        {
+            partType = ptAN21;
+        }
+        else if([partTypeStr isEqualToString:@"fx"])
+        {
+            partType = ptFX;
+        }
+        else if([partTypeStr isEqualToString:@"fx2"])
+        {
+            partType = ptFX2;
+        }
+        else if([partTypeStr isEqualToString:@"fx2lp"])
+        {
+            partType = ptFX2LP;
+        }
+        else
+        {
+            NSLog(@"Unexpected part type string: %@", partTypeStr);
+            goto cleanup;
+        }
         
         if(verbose)
         {
-            NSLog(@"Microcontroller type: %@", partType);
+            NSLog(@"Microcontroller type: %@", partTypeStr);
         }
         
         NSString* stage2 = [args valueForKey:kArg2ndStage];
@@ -303,7 +324,7 @@ int main (int argc, char * argv[]) {
             {
                 NSLog(@"1st stage: Load 2nd stage loader");
             }
-            status = ezusb_load_ram(dev, stage2, fx2, FALSE);
+            status = ezusb_load_ram(dev, stage2, partType, FALSE);
             if(status != 0)
             {
                 goto cleanup;
@@ -316,14 +337,14 @@ int main (int argc, char * argv[]) {
                     [[args valueForKey:kArgConfigByte] unsignedCharValue];
                 status = ezusb_load_eeprom(dev,
                                            [args valueForKey:kArgHexFile],
-                                           [args valueForKey:kArgPartType],
+                                           partType,
                                            config);
             }
             else
             {
                 status = ezusb_load_ram(dev,
                                            [args valueForKey:kArgHexFile],
-                                           fx2, TRUE);
+                                           partType, TRUE);
             }
         }
         else
@@ -334,7 +355,7 @@ int main (int argc, char * argv[]) {
                 NSLog(@"Single stage: load on-chip memory");
             }
             
-            status = ezusb_load_ram(dev, [args valueForKey:kArgHexFile], fx2, FALSE);
+            status = ezusb_load_ram(dev, [args valueForKey:kArgHexFile], partType, FALSE);
         }
         
         if(status != 0)

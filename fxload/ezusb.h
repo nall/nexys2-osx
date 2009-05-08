@@ -48,6 +48,15 @@ typedef enum
     skip_external       /* second phase, second-stage loader */
 } ram_mode;
 
+typedef enum
+{
+    ptUNDEF = 0,
+    ptAN21,
+    ptFX,
+    ptFX2,
+    ptFX2LP
+} part_type;
+
 struct ram_poke_context
 {
     IOUSBDeviceInterface** dev;
@@ -81,7 +90,7 @@ struct eeprom_poke_context
 extern int ezusb_load_ram (
     IOUSBDeviceInterface** dev, /* usb device handle */
     NSString* hexfilePath,      /* path to hexfile */
-    const BOOL fx2,             /* TRUE if this is an fx2 part; else FALSE */
+    const part_type partType,   /* the part type to program */
     const BOOL stage            /* TRUE if this is the second stage */
     );
 
@@ -100,8 +109,8 @@ extern int ezusb_load_ram (
 extern int ezusb_load_eeprom (
     IOUSBDeviceInterface** dev, /* usb device handle */
     NSString* hexfilePath,      /* path to hexfile */
-    NSString* partType,         /* fx, fx2, an21 */
-    uint8_t config        /* config byte for fx/fx2; else zero */
+    const part_type partType,   /* fx, fx2, fx2lp, an21 */
+    uint8_t config              /* config byte for fx/fx2; else zero */
     );
 
 
